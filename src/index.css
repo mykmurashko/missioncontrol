@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    background-color: transparent;
+  }
+  
+  body {
+    font-feature-settings: "rlig" 1, "calt" 1;
+    color: #111827;
+  }
+  
+  .dark body {
+    color: #f9fafb;
+  }
+  
+  #root {
+    height: 100%;
+    width: 100%;
+  }
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 30s linear infinite;
+}
