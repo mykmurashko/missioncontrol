@@ -1,4 +1,4 @@
-import { initializeApp, getApps, type App } from 'firebase/app';
+import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import { getDatabase, type Database } from 'firebase/database';
 
 // Firebase configuration
@@ -13,10 +13,10 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID || '',
 };
 
-let app: App | null = null;
+let app: FirebaseApp | null = null;
 let database: Database | null = null;
 
-export function getFirebaseApp(): App {
+export function getFirebaseApp(): FirebaseApp {
   if (!app) {
     const existingApps = getApps();
     if (existingApps.length > 0) {

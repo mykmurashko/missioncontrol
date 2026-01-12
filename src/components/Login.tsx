@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Button } from './ui/button';
 
 interface LoginProps {
@@ -7,7 +6,6 @@ interface LoginProps {
 }
 
 export function Login({ onLogin, error: externalError }: LoginProps) {
-  const [error, setError] = useState(externalError || '');
 
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-white dark:bg-[#050505]">
@@ -21,9 +19,9 @@ export function Login({ onLogin, error: externalError }: LoginProps) {
             </p>
           </div>
 
-          {(error || externalError) && (
+          {externalError && (
             <div className="text-sm text-red-600 dark:text-red-400 text-center p-3 bg-red-50 dark:bg-red-900/20 rounded-md">
-              {error || externalError}
+              {externalError}
             </div>
           )}
 
