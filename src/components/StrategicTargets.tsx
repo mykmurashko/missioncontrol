@@ -10,9 +10,19 @@ interface StrategicTargetsProps {
 export function StrategicTargets({ text, isEditing, onChange }: StrategicTargetsProps) {
   const [localText, setLocalText] = useState(text);
 
+  // Only sync from props when NOT editing to prevent overwriting user input
   useEffect(() => {
-    setLocalText(text);
-  }, [text]);
+    if (!isEditing) {
+      setLocalText(text);
+    }
+  }, [text, isEditing]);
+
+  // Initialize local state when entering edit mode
+  useEffect(() => {
+    if (isEditing) {
+      setLocalText(text);
+    }
+  }, [isEditing]);
 
   const handleSave = () => {
     onChange(localText);

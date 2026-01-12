@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import type { Post } from '../types';
 import { Textarea } from './ui/textarea';
 import { Input } from './ui/input';
@@ -13,6 +14,39 @@ interface PostsProps {
 
 export function Posts({ posts, isEditing, onUpdate, orgName: _orgName }: PostsProps) {
   const sectionTitle = 'updates';
+  // Track local state for post content fields to prevent overwriting while editing
+  const [localPostContent, setLocalPostContent] = useState<Record<string, string>>({});
+  
+  // Initialize local state from posts when entering edit mode or when new posts are added
+  useEffect(() => {
+    if (isEditing) {
+      setLocalPostContent(prev => {
+        const updated = { ...prev };
+        posts.forEach(post => {
+          // Only initialize if not already in local state (to preserve edits in progress)
+          if (!(post.id in updated)) {
+            updated[post.id] = post.content;
+          }
+        });
+        return updated;
+      });
+    } else {
+      // Clear local state when exiting edit mode
+      setLocalPostContent({});
+    }
+  }, [isEditing, posts.map(p => p.id).join(',')]); // Track post IDs to detect new posts
+  
+  // Sync local state from props when NOT editing to get updates from other users
+  useEffect(() => {
+    if (!isEditing) {
+      const contentMap: Record<string, string> = {};
+      posts.forEach(post => {
+        contentMap[post.id] = post.content;
+      });
+      setLocalPostContent(contentMap);
+    }
+  }, [posts, isEditing]);
+  
   const updatePosts = (updater: (prev: Post[]) => Post[]) => {
     onUpdate(updater([...posts]));
   };
@@ -85,8 +119,16 @@ export function Posts({ posts, isEditing, onUpdate, orgName: _orgName }: PostsPr
                     </Button>
                   </div>
                   <Textarea
-                    value={post.content}
-                    onChange={(e) => updatePost(post.id, { content: e.target.value })}
+                    value={localPostContent[post.id] ?? post.content}
+                    onChange={(e) => {
+                      setLocalPostContent(prev => ({ ...prev, [post.id]: e.target.value }));
+                    }}
+                    onBlur={() => {
+                      const content = localPostContent[post.id];
+                      if (content !== undefined && content !== post.content) {
+                        updatePost(post.id, { content });
+                      }
+                    }}
                     className="min-h-[40px] resize-none text-[10px]"
                     placeholder="Post content"
                   />
