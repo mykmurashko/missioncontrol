@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLocalStorageState } from './hooks/useLocalStorageState';
+import { useFirebaseState } from './hooks/useFirebaseState';
 import { useTheme } from './hooks/useTheme';
 import { useAuth } from './hooks/useAuth';
 import { TopBar } from './components/TopBar';
@@ -79,8 +79,8 @@ function OpcodeLogo({ theme }: { theme: 'light' | 'dark' }) {
 }
 
 function App() {
-  const { isAuthenticated, login } = useAuth();
-  const [state, updateState] = useLocalStorageState();
+  const { isAuthenticated, login, userInfo, isLoading: authLoading, error: authError } = useAuth();
+  const [state, updateState, { isLoading, isConnected }] = useFirebaseState();
   const { theme, toggleTheme } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [isKioskMode, setIsKioskMode] = useState(false);
@@ -94,9 +94,33 @@ function App() {
     setIsEditing((prev) => !prev);
   };
 
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-white dark:bg-[#050505]">
+        <div className="text-gray-600 dark:text-neutral-400">Loading...</div>
+      </div>
+    );
+  }
+
   // Show login screen if not authenticated
   if (!isAuthenticated) {
-    return <Login onLogin={login} />;
+    return <Login onLogin={login} error={authError || undefined} />;
+  }
+
+  // Show loading state while initializing Firebase
+  if (isLoading) {
+    return (
+      <div className="relative h-screen w-screen overflow-hidden bg-white dark:bg-[#050505] flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-gray-600 dark:text-gray-400 mb-2">Loading...</div>
+          <div className="text-xs text-gray-500 dark:text-gray-500">Connecting to database</div>
+          <div className="text-xs text-gray-400 dark:text-gray-600 mt-4">
+            Check browser console for connection details
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -106,6 +130,12 @@ function App() {
       {/* Main content */}
       <div className="relative z-10 flex h-full w-full flex-col">
         <TopBar />
+        {/* Connection status indicator */}
+        {!isConnected && (
+          <div className="absolute top-16 right-4 z-20 bg-yellow-500 text-white px-3 py-1 text-xs rounded">
+            Offline - Changes saved locally
+          </div>
+        )}
 
         <main className="flex-1 overflow-auto p-8 pb-24">
           <div className="mx-auto max-w-[1800px] h-full">
@@ -150,6 +180,7 @@ function App() {
         isKioskMode={isKioskMode}
         theme={theme}
         onToggleTheme={toggleTheme}
+        userName={userInfo?.name}
       />
     </div>
   );

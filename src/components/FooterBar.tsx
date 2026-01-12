@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from './ui/button';
 import { ThemeToggle } from './ThemeToggle';
+import { getGreeting } from '../lib/time';
 
 interface FooterBarProps {
   isEditing: boolean;
@@ -8,9 +9,10 @@ interface FooterBarProps {
   isKioskMode: boolean;
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
+  userName?: string;
 }
 
-export function FooterBar({ isEditing, onToggleEdit, isKioskMode, theme, onToggleTheme }: FooterBarProps) {
+export function FooterBar({ isEditing, onToggleEdit, isKioskMode, theme, onToggleTheme, userName }: FooterBarProps) {
   const [tickerText, setTickerText] = useState('');
 
   useEffect(() => {
@@ -67,6 +69,13 @@ export function FooterBar({ isEditing, onToggleEdit, isKioskMode, theme, onToggl
       <div className="mx-auto max-w-[1800px] px-8 py-3">
         <div className="flex items-center justify-between text-[10px] font-sans text-gray-600 dark:text-neutral-400">
           <div className="flex items-center gap-6">
+            {userName && (
+              <div>
+                <span className="text-gray-600 dark:text-neutral-400 font-medium">
+                  {getGreeting(userName)}
+                </span>
+              </div>
+            )}
             <div>
               <span className="text-gray-600 dark:text-neutral-400">work in progress: suggestions welcome</span>
             </div>

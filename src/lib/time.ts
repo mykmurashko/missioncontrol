@@ -26,3 +26,18 @@ export function getTimezoneLabel(timezone: string): string {
   return labels[timezone] || timezone;
 }
 
+export function getGreeting(name?: string): string {
+  if (!name) return '';
+  
+  const hour = new Date().getHours();
+  let timeGreeting = 'Good Morning';
+  
+  if (hour >= 12 && hour < 17) {
+    timeGreeting = 'Good Afternoon';
+  } else if (hour >= 17 || hour < 5) {
+    timeGreeting = 'Good Evening';
+  }
+  
+  return `${timeGreeting} ${name}`;
+}
+

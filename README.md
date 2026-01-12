@@ -4,6 +4,8 @@ A production-quality single-page dashboard UI for two businesses (Maestro Techno
 
 ## Features
 
+- **Google SSO Authentication**: Secure login with domain restrictions (@maestro-tech.com, @opcode.systems)
+- **Personalized Greeting**: Time-based greeting with user's name in the footer
 - **Clean Swiss Design**: Strong grid layout, generous whitespace, consistent typography
 - **Real-time World Clocks**: Italy, London, New York, San Francisco
 - **ISO Week Display**: Prominent week number indicator
@@ -31,6 +33,7 @@ A production-quality single-page dashboard UI for two businesses (Maestro Techno
 ### Prerequisites
 
 - Node.js 18+ and npm
+- Google OAuth 2.0 Client ID (see setup below)
 
 ### Installation
 
@@ -39,12 +42,33 @@ A production-quality single-page dashboard UI for two businesses (Maestro Techno
 npm install
 ```
 
-2. Start the development server:
+2. Set up Google OAuth:
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Create a new project or select an existing one
+   - Enable the Google+ API
+   - Go to "Credentials" → "Create Credentials" → "OAuth 2.0 Client ID"
+   - Choose "Web application"
+   - Add your domain to "Authorized JavaScript origins" (e.g., `http://localhost:5173` for dev)
+   - Copy the Client ID
+
+3. Create a `.env` file in the root directory:
+```bash
+VITE_GOOGLE_CLIENT_ID=your-google-oauth-client-id-here
+```
+
+4. Start the development server:
 ```bash
 npm run dev
 ```
 
-3. Open your browser to the URL shown (typically `http://localhost:5173`)
+5. Open your browser to the URL shown (typically `http://localhost:5173`)
+
+### Authentication
+
+The application uses Google Single Sign-On (SSO) with domain restrictions:
+- Only users with `@maestro-tech.com` or `@opcode.systems` email addresses can access
+- Users will see a personalized greeting in the footer (e.g., "Good Morning John")
+- The greeting changes based on time of day (Morning/Afternoon/Evening)
 
 ### Build for Production
 
