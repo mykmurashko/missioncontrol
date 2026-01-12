@@ -39,7 +39,7 @@ export function OpCodeMetrics({ metrics, isEditing, onChange }: OpCodeMetricsPro
           label="Components Parsed Since 01.01.2026"
           isEditing={isEditing}
           onChange={(value) => updateMetric('componentsParsedSince2026', value)}
-          digits={6}
+          digits={5}
         />
       </div>
       {/* COMING SOON Banner */}
