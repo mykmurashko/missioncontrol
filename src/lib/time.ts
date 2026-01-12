@@ -41,3 +41,8 @@ export function getGreeting(name?: string): string {
   return `${timeGreeting} ${name}`;
 }
 
+
+export function formatTimeShort(timestamp: string): string {
+  const dt = DateTime.fromISO(timestamp);
+  return dt.toFormat('HH:mm');
+}

@@ -11,7 +11,7 @@ interface PostsProps {
   orgName: string;
 }
 
-export function Posts({ posts, isEditing, onUpdate, orgName }: PostsProps) {
+export function Posts({ posts, isEditing, onUpdate, orgName: _orgName }: PostsProps) {
   const sectionTitle = 'updates';
   const updatePosts = (updater: (prev: Post[]) => Post[]) => {
     onUpdate(updater([...posts]));
