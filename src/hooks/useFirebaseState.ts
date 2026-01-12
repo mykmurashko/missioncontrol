@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getFirebaseDatabase } from '../lib/firebase';
-import { ref, onValue, set, get } from 'firebase/database';
+import { ref, onValue, set } from 'firebase/database';
 import type { AppState } from '../types';
 import { DEFAULT_STATE } from '../types';
 
@@ -13,15 +13,17 @@ export function useFirebaseState() {
   const isInitializedRef = useRef(false);
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isLocalUpdateRef = useRef(false);
+  const lastWriteTimeRef = useRef<number>(0);
+  const isLoadingRef = useRef(true);
 
-  // Initialize Firebase connection
+  // Initialize Firebase connection - only run once
   useEffect(() => {
     if (isInitializedRef.current) return;
+    isInitializedRef.current = true;
 
     // Set a timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {
-      if (isLoading) {
+      if (isLoadingRef.current) {
         console.warn('Firebase connection timeout - using default state');
         setIsLoading(false);
         setIsConnected(false);
@@ -37,21 +39,23 @@ export function useFirebaseState() {
       console.log('Database path:', STATE_PATH);
 
       // Set up real-time listener
+      // onValue fires immediately with current data, then on every change
       const unsubscribe = onValue(
         stateRef,
         (snapshot) => {
           clearTimeout(timeoutId);
           
-          // Only update if this isn't a local update we just made
-          if (isLocalUpdateRef.current) {
-            isLocalUpdateRef.current = false;
-            // Still mark as loaded even if we skip the update
+          // Skip updates that happen within 100ms of a local write
+          // This prevents the echo effect when we write locally
+          const timeSinceLastWrite = Date.now() - lastWriteTimeRef.current;
+          if (timeSinceLastWrite < 100) {
+            console.log('Skipping local update echo');
             setIsLoading(false);
             setIsConnected(true);
             return;
           }
 
-          console.log('Firebase connected, data received:', snapshot.exists());
+          console.log('Firebase listener fired, data received:', snapshot.exists());
 
           if (snapshot.exists()) {
             const data = snapshot.val();
@@ -62,15 +66,18 @@ export function useFirebaseState() {
               console.warn('Invalid data structure, using default state');
               setState(DEFAULT_STATE);
             }
+            isLoadingRef.current = false;
             setIsLoading(false);
             setIsConnected(true);
           } else {
             // No data exists, initialize with default state
             console.log('No data found, initializing with default state');
-            setState(DEFAULT_STATE); // Set state immediately so UI can render
+            setState(DEFAULT_STATE);
+            isLoadingRef.current = false;
             setIsLoading(false);
             setIsConnected(true);
-            // Write to Firebase in the background
+            // Write to Firebase in the background (but mark as local write)
+            lastWriteTimeRef.current = Date.now();
             set(stateRef, DEFAULT_STATE).catch((error) => {
               console.error('Failed to initialize default state:', error);
             });
@@ -86,6 +93,7 @@ export function useFirebaseState() {
             console.error('Error message:', error.message);
           }
           setIsConnected(false);
+          isLoadingRef.current = false;
           setIsLoading(false);
           // Fallback to default state on error
           setState(DEFAULT_STATE);
@@ -93,48 +101,13 @@ export function useFirebaseState() {
       );
 
       unsubscribeRef.current = unsubscribe;
-      isInitializedRef.current = true;
-
-      // Check initial connection status and load data if listener doesn't fire
-      get(stateRef)
-        .then((snapshot) => {
-          console.log('Firebase connection check successful');
-          setIsConnected(true);
-          
-          // If listener hasn't fired after 2 seconds, use one-time read as fallback
-          setTimeout(() => {
-            if (isLoading) {
-              console.log('Listener not fired, using one-time read fallback');
-              if (snapshot.exists()) {
-                const data = snapshot.val();
-                if (data && data.orgs) {
-                  setState(data as AppState);
-                } else {
-                  setState(DEFAULT_STATE);
-                }
-              } else {
-                setState(DEFAULT_STATE);
-                // Try to write default state
-                set(stateRef, DEFAULT_STATE).catch((error) => {
-                  console.error('Failed to write default state:', error);
-                });
-              }
-              setIsLoading(false);
-            }
-          }, 2000);
-        })
-        .catch((error) => {
-          console.error('Firebase connection check failed:', error);
-          setIsConnected(false);
-          setIsLoading(false);
-          setState(DEFAULT_STATE);
-        });
     } catch (error) {
       clearTimeout(timeoutId);
       console.error('Failed to initialize Firebase:', error);
       if (error instanceof Error) {
         console.error('Error details:', error.message);
       }
+      isLoadingRef.current = false;
       setIsLoading(false);
       setIsConnected(false);
       setState(DEFAULT_STATE);
@@ -150,7 +123,7 @@ export function useFirebaseState() {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [isLoading]);
+  }, []); // Empty dependency array - only run once
 
   const debouncedSave = useCallback((newState: AppState) => {
     if (saveTimeoutRef.current) {
@@ -160,14 +133,13 @@ export function useFirebaseState() {
       try {
         const database = getFirebaseDatabase();
         const stateRef = ref(database, STATE_PATH);
-        isLocalUpdateRef.current = true;
+        // Mark the write time to prevent echo in listener
+        lastWriteTimeRef.current = Date.now();
         set(stateRef, newState).catch((error) => {
           console.error('Failed to save state to Firebase:', error);
-          isLocalUpdateRef.current = false;
         });
       } catch (error) {
         console.error('Failed to save state to Firebase:', error);
-        isLocalUpdateRef.current = false;
       }
       saveTimeoutRef.current = null;
     }, 500);
@@ -192,7 +164,7 @@ export function useFirebaseState() {
         try {
           const database = getFirebaseDatabase();
           const stateRef = ref(database, STATE_PATH);
-          isLocalUpdateRef.current = true;
+          lastWriteTimeRef.current = Date.now();
           set(stateRef, state).catch((error) => {
             console.error('Failed to save state on unmount:', error);
           });
