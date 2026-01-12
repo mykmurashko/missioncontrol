@@ -137,31 +137,46 @@ export function useFirebaseState(userInfo?: UserInfo | null) {
     };
   }, []); // Empty dependency array - only run once
 
+  const saveToFirebase = useCallback((newState: AppState) => {
+    try {
+      const database = getFirebaseDatabase();
+      const stateRef = ref(database, STATE_PATH);
+      // Mark the write time to prevent echo in listener
+      lastWriteTimeRef.current = Date.now();
+      // Add last updated info
+      const stateToSave: AppState = {
+        ...newState,
+        lastUpdated: new Date().toISOString(),
+        lastUpdatedBy: userInfoRef.current?.name || userInfoRef.current?.email || 'Unknown',
+      };
+      set(stateRef, stateToSave).catch((error) => {
+        console.error('Failed to save state to Firebase:', error);
+      });
+    } catch (error) {
+      console.error('Failed to save state to Firebase:', error);
+    }
+  }, []);
+
   const debouncedSave = useCallback((newState: AppState) => {
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
     saveTimeoutRef.current = setTimeout(() => {
-      try {
-        const database = getFirebaseDatabase();
-        const stateRef = ref(database, STATE_PATH);
-        // Mark the write time to prevent echo in listener
-        lastWriteTimeRef.current = Date.now();
-        // Add last updated info
-        const stateToSave: AppState = {
-          ...newState,
-          lastUpdated: new Date().toISOString(),
-          lastUpdatedBy: userInfoRef.current?.name || userInfoRef.current?.email || 'Unknown',
-        };
-        set(stateRef, stateToSave).catch((error) => {
-          console.error('Failed to save state to Firebase:', error);
-        });
-      } catch (error) {
-        console.error('Failed to save state to Firebase:', error);
-      }
+      saveToFirebase(newState);
       saveTimeoutRef.current = null;
     }, 500);
-  }, []);
+  }, [saveToFirebase]);
+
+  // Immediate save function for critical operations like deletions
+  const immediateSave = useCallback((newState: AppState) => {
+    // Cancel any pending debounced save
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+    // Save immediately
+    saveToFirebase(newState);
+  }, [saveToFirebase]);
 
   const updateState = useCallback(
     (updater: (prev: AppState) => AppState) => {
@@ -198,5 +213,5 @@ export function useFirebaseState(userInfo?: UserInfo | null) {
     };
   }, [state]);
 
-  return [state, updateState, { isLoading, isConnected }] as const;
+  return [state, updateState, { isLoading, isConnected, immediateSave }] as const;
 }

@@ -62,6 +62,13 @@ export function Posts({ posts, isEditing, onUpdate, orgName: _orgName }: PostsPr
   };
 
   const removePost = (id: string) => {
+    // Clean up local content state for deleted post
+    setLocalPostContent(prev => {
+      const updated = { ...prev };
+      delete updated[id];
+      return updated;
+    });
+    // Remove post from list
     updatePosts((prev) => prev.filter((p) => p.id !== id));
   };
 
