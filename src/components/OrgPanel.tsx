@@ -11,6 +11,7 @@ interface OrgPanelProps {
   logo: React.ReactNode;
   isEditing: boolean;
   onUpdate: (org: Org) => void;
+  onDeleteUpdate?: (org: Org) => void;
 }
 
 function ensureOrgData(org: Org, orgName: string): Org {
@@ -38,9 +39,17 @@ function ensureOrgData(org: Org, orgName: string): Org {
   }
 }
 
-export function OrgPanel({ org, orgName, logo, isEditing, onUpdate }: OrgPanelProps) {
+export function OrgPanel({ org, orgName, logo, isEditing, onUpdate, onDeleteUpdate }: OrgPanelProps) {
   const updateOrg = (updater: (prev: Org) => Org) => {
     onUpdate(updater({ ...org }));
+  };
+  
+  const updateOrgImmediate = (updater: (prev: Org) => Org) => {
+    if (onDeleteUpdate) {
+      onDeleteUpdate(updater({ ...org }));
+    } else {
+      onUpdate(updater({ ...org }));
+    }
   };
 
   const orgWithDefaults = ensureOrgData(org, orgName);
@@ -76,6 +85,9 @@ export function OrgPanel({ org, orgName, logo, isEditing, onUpdate }: OrgPanelPr
                 onUpdate={(projects) =>
                   updateOrg((prev) => ({ ...prev, maestroProjects: projects }))
                 }
+                onDeleteUpdate={(projects) =>
+                  updateOrgImmediate((prev) => ({ ...prev, maestroProjects: projects }))
+                }
               />
             )}
           </div>
@@ -91,12 +103,16 @@ export function OrgPanel({ org, orgName, logo, isEditing, onUpdate }: OrgPanelPr
                 onUpdate={(sprintScope) =>
                   updateOrg((prev) => ({ ...prev, sprintScope }))
                 }
+                onDeleteUpdate={(sprintScope) =>
+                  updateOrgImmediate((prev) => ({ ...prev, sprintScope }))
+                }
               />
             ) : (
               <Posts
                 posts={orgWithDefaults.posts!}
                 isEditing={isEditing}
                 onUpdate={(posts) => updateOrg((prev) => ({ ...prev, posts }))}
+                onDeleteUpdate={(posts) => updateOrgImmediate((prev) => ({ ...prev, posts }))}
                 orgName={orgName}
               />
             )}

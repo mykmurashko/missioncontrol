@@ -81,9 +81,10 @@ interface MaestroProjectsProps {
   projects: MaestroProject[];
   isEditing: boolean;
   onUpdate: (projects: MaestroProject[]) => void;
+  onDeleteUpdate?: (projects: MaestroProject[]) => void;
 }
 
-export function MaestroProjects({ projects, isEditing, onUpdate }: MaestroProjectsProps) {
+export function MaestroProjects({ projects, isEditing, onUpdate, onDeleteUpdate }: MaestroProjectsProps) {
   const updateProjects = (updater: (prev: MaestroProject[]) => MaestroProject[]) => {
     onUpdate(updater([...projects]));
   };
@@ -102,7 +103,12 @@ export function MaestroProjects({ projects, isEditing, onUpdate }: MaestroProjec
   };
 
   const removeProject = (id: string) => {
-    updateProjects((prev) => prev.filter((p) => p.id !== id));
+    const updatedProjects = projects.filter((p) => p.id !== id);
+    if (onDeleteUpdate) {
+      onDeleteUpdate(updatedProjects);
+    } else {
+      updateProjects(() => updatedProjects);
+    }
   };
 
   const updateProject = (id: string, updates: Partial<MaestroProject>) => {

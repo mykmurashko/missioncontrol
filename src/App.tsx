@@ -80,7 +80,7 @@ function OpcodeLogo({ theme }: { theme: 'light' | 'dark' }) {
 
 function App() {
   const { isAuthenticated, login, userInfo, isLoading: authLoading, error: authError } = useAuth();
-  const [state, updateState, { isLoading, isConnected }] = useFirebaseState(userInfo);
+  const [state, updateState, { isLoading, isConnected, updateStateImmediate }] = useFirebaseState(userInfo);
   const { theme, toggleTheme } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [isKioskMode, setIsKioskMode] = useState(false);
@@ -153,6 +153,12 @@ function App() {
                       orgs: { ...prev.orgs, maestro: org },
                     }))
                   }
+                  onDeleteUpdate={(org) =>
+                    updateStateImmediate((prev) => ({
+                      ...prev,
+                      orgs: { ...prev.orgs, maestro: org },
+                    }))
+                  }
                 />
               </div>
               <div className="border border-gray-200 dark:border-white/10 bg-white/50 dark:bg-transparent">
@@ -163,6 +169,12 @@ function App() {
                   isEditing={isEditing}
                   onUpdate={(org) =>
                     updateState((prev) => ({
+                      ...prev,
+                      orgs: { ...prev.orgs, opcode: org },
+                    }))
+                  }
+                  onDeleteUpdate={(org) =>
+                    updateStateImmediate((prev) => ({
                       ...prev,
                       orgs: { ...prev.orgs, opcode: org },
                     }))

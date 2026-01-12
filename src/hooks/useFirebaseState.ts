@@ -189,6 +189,18 @@ export function useFirebaseState(userInfo?: UserInfo | null) {
     [debouncedSave]
   );
 
+  // Update state with immediate save for critical operations like deletions
+  const updateStateImmediate = useCallback(
+    (updater: (prev: AppState) => AppState) => {
+      setState((prev) => {
+        const next = updater(prev);
+        immediateSave(next);
+        return next;
+      });
+    },
+    [immediateSave]
+  );
+
   // Save on unmount
   useEffect(() => {
     return () => {
@@ -213,5 +225,5 @@ export function useFirebaseState(userInfo?: UserInfo | null) {
     };
   }, [state]);
 
-  return [state, updateState, { isLoading, isConnected, immediateSave }] as const;
+  return [state, updateState, { isLoading, isConnected, immediateSave, updateStateImmediate }] as const;
 }

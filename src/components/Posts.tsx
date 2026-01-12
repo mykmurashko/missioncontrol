@@ -9,10 +9,11 @@ interface PostsProps {
   posts: Post[];
   isEditing: boolean;
   onUpdate: (posts: Post[]) => void;
+  onDeleteUpdate?: (posts: Post[]) => void;
   orgName: string;
 }
 
-export function Posts({ posts, isEditing, onUpdate, orgName: _orgName }: PostsProps) {
+export function Posts({ posts, isEditing, onUpdate, onDeleteUpdate, orgName: _orgName }: PostsProps) {
   const sectionTitle = 'updates';
   // Track local state for post content fields to prevent overwriting while editing
   const [localPostContent, setLocalPostContent] = useState<Record<string, string>>({});
@@ -68,8 +69,13 @@ export function Posts({ posts, isEditing, onUpdate, orgName: _orgName }: PostsPr
       delete updated[id];
       return updated;
     });
-    // Remove post from list
-    updatePosts((prev) => prev.filter((p) => p.id !== id));
+    // Remove post from list - use immediate save for deletions
+    const updatedPosts = posts.filter((p) => p.id !== id);
+    if (onDeleteUpdate) {
+      onDeleteUpdate(updatedPosts);
+    } else {
+      updatePosts(() => updatedPosts);
+    }
   };
 
   const updatePost = (id: string, updates: Partial<Post>) => {

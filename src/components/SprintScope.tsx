@@ -8,9 +8,10 @@ interface SprintScopeProps {
   sprintScope: SprintScope;
   isEditing: boolean;
   onUpdate: (sprintScope: SprintScope) => void;
+  onDeleteUpdate?: (sprintScope: SprintScope) => void;
 }
 
-export function SprintScopeComponent({ sprintScope, isEditing, onUpdate }: SprintScopeProps) {
+export function SprintScopeComponent({ sprintScope, isEditing, onUpdate, onDeleteUpdate }: SprintScopeProps) {
   const updateSprintScope = (updates: Partial<SprintScope>) => {
     onUpdate({ ...sprintScope, ...updates });
   };
@@ -28,9 +29,13 @@ export function SprintScopeComponent({ sprintScope, isEditing, onUpdate }: Sprin
   };
 
   const removeFeature = (id: string) => {
-    updateSprintScope({
-      features: (sprintScope.features || []).filter((f) => f.id !== id),
-    });
+    const updatedFeatures = (sprintScope.features || []).filter((f) => f.id !== id);
+    const updatedSprintScope = { ...sprintScope, features: updatedFeatures };
+    if (onDeleteUpdate) {
+      onDeleteUpdate(updatedSprintScope);
+    } else {
+      updateSprintScope({ features: updatedFeatures });
+    }
   };
 
   const updateFeature = (id: string, updates: Partial<{ name: string; owner: string; description: string }>) => {
