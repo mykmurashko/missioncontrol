@@ -12,7 +12,7 @@ interface PostsProps {
 }
 
 export function Posts({ posts, isEditing, onUpdate, orgName }: PostsProps) {
-  const sectionTitle = orgName === 'OPCODE' ? 'updates (slack integration)' : 'updates (slack integration)';
+  const sectionTitle = 'updates';
   const updatePosts = (updater: (prev: Post[]) => Post[]) => {
     onUpdate(updater([...posts]));
   };
@@ -124,8 +124,8 @@ export function Posts({ posts, isEditing, onUpdate, orgName }: PostsProps) {
         )}
       </div>
       {/* COMING SOON Banner */}
-      <div className="absolute bottom-4 right-4 bg-yellow-500 dark:bg-yellow-500 text-gray-900 dark:text-gray-900 px-3 py-1.5 text-[9px] font-sans uppercase tracking-widest font-bold">
-        COMING SOON
+      <div className="absolute bottom-4 right-4 bg-yellow-500 dark:bg-yellow-500 text-gray-900 dark:text-gray-900 px-3 py-1.5 text-[9px] font-sans tracking-widest font-bold">
+        slack channel integration coming soon
       </div>
     </div>
   );

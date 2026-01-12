@@ -3,10 +3,11 @@ import { getFirebaseDatabase } from '../lib/firebase';
 import { ref, onValue, set } from 'firebase/database';
 import type { AppState } from '../types';
 import { DEFAULT_STATE } from '../types';
+import type { UserInfo } from './useAuth';
 
 const STATE_PATH = 'mission-control-state';
 
-export function useFirebaseState() {
+export function useFirebaseState(userInfo?: UserInfo | null) {
   const [state, setState] = useState<AppState>(DEFAULT_STATE);
   const [isLoading, setIsLoading] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
@@ -15,6 +16,12 @@ export function useFirebaseState() {
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastWriteTimeRef = useRef<number>(0);
   const isLoadingRef = useRef(true);
+  const userInfoRef = useRef<UserInfo | null | undefined>(userInfo);
+  
+  // Update ref when userInfo changes
+  useEffect(() => {
+    userInfoRef.current = userInfo;
+  }, [userInfo]);
 
   // Initialize Firebase connection - only run once
   useEffect(() => {
@@ -78,7 +85,12 @@ export function useFirebaseState() {
             setIsConnected(true);
             // Write to Firebase in the background (but mark as local write)
             lastWriteTimeRef.current = Date.now();
-            set(stateRef, DEFAULT_STATE).catch((error) => {
+            const initialState: AppState = {
+              ...DEFAULT_STATE,
+              lastUpdated: new Date().toISOString(),
+              lastUpdatedBy: userInfoRef.current?.name || userInfoRef.current?.email || 'System',
+            };
+            set(stateRef, initialState).catch((error) => {
               console.error('Failed to initialize default state:', error);
             });
           }
@@ -135,7 +147,13 @@ export function useFirebaseState() {
         const stateRef = ref(database, STATE_PATH);
         // Mark the write time to prevent echo in listener
         lastWriteTimeRef.current = Date.now();
-        set(stateRef, newState).catch((error) => {
+        // Add last updated info
+        const stateToSave: AppState = {
+          ...newState,
+          lastUpdated: new Date().toISOString(),
+          lastUpdatedBy: userInfoRef.current?.name || userInfoRef.current?.email || 'Unknown',
+        };
+        set(stateRef, stateToSave).catch((error) => {
           console.error('Failed to save state to Firebase:', error);
         });
       } catch (error) {
@@ -165,7 +183,12 @@ export function useFirebaseState() {
           const database = getFirebaseDatabase();
           const stateRef = ref(database, STATE_PATH);
           lastWriteTimeRef.current = Date.now();
-          set(stateRef, state).catch((error) => {
+          const stateToSave: AppState = {
+            ...state,
+            lastUpdated: new Date().toISOString(),
+            lastUpdatedBy: userInfoRef.current?.name || userInfoRef.current?.email || 'Unknown',
+          };
+          set(stateRef, stateToSave).catch((error) => {
             console.error('Failed to save state on unmount:', error);
           });
         } catch (error) {

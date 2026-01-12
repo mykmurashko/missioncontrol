@@ -80,7 +80,7 @@ function OpcodeLogo({ theme }: { theme: 'light' | 'dark' }) {
 
 function App() {
   const { isAuthenticated, login, userInfo, isLoading: authLoading, error: authError } = useAuth();
-  const [state, updateState, { isLoading, isConnected }] = useFirebaseState();
+  const [state, updateState, { isLoading, isConnected }] = useFirebaseState(userInfo);
   const { theme, toggleTheme } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [isKioskMode, setIsKioskMode] = useState(false);
@@ -181,6 +181,8 @@ function App() {
         theme={theme}
         onToggleTheme={toggleTheme}
         userName={userInfo?.name}
+        lastUpdated={state.lastUpdated}
+        lastUpdatedBy={state.lastUpdatedBy}
       />
     </div>
   );

@@ -43,8 +43,8 @@ export function OpCodeMetrics({ metrics, isEditing, onChange }: OpCodeMetricsPro
         />
       </div>
       {/* COMING SOON Banner */}
-      <div className="absolute bottom-4 right-4 bg-yellow-500 dark:bg-yellow-500 text-gray-900 dark:text-gray-900 px-3 py-1.5 text-[9px] font-sans uppercase tracking-widest font-bold">
-        COMING SOON
+      <div className="absolute bottom-4 right-4 bg-yellow-500 dark:bg-yellow-500 text-gray-900 dark:text-gray-900 px-3 py-1.5 text-[9px] font-sans tracking-widest font-bold">
+        Live Dashboard coming soon
       </div>
     </div>
   );

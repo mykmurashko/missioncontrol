@@ -70,6 +70,8 @@ export interface AppState {
   settings?: {
     [key: string]: unknown;
   };
+  lastUpdated?: string; // ISO timestamp
+  lastUpdatedBy?: string; // User name or email
   orgs: {
     maestro: Org;
     opcode: Org;

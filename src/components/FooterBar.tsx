@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from './ui/button';
 import { ThemeToggle } from './ThemeToggle';
-import { getGreeting } from '../lib/time';
+import { getGreeting, formatTimeShort } from '../lib/time';
 
 interface FooterBarProps {
   isEditing: boolean;
@@ -10,9 +10,11 @@ interface FooterBarProps {
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
   userName?: string;
+  lastUpdated?: string;
+  lastUpdatedBy?: string;
 }
 
-export function FooterBar({ isEditing, onToggleEdit, isKioskMode, theme, onToggleTheme, userName }: FooterBarProps) {
+export function FooterBar({ isEditing, onToggleEdit, isKioskMode, theme, onToggleTheme, userName, lastUpdated, lastUpdatedBy }: FooterBarProps) {
   const [tickerText, setTickerText] = useState('');
 
   useEffect(() => {
@@ -79,6 +81,13 @@ export function FooterBar({ isEditing, onToggleEdit, isKioskMode, theme, onToggl
             <div>
               <span className="text-gray-600 dark:text-neutral-400">work in progress: suggestions welcome</span>
             </div>
+            {lastUpdated && lastUpdatedBy && (
+              <div>
+                <span className="text-gray-600 dark:text-neutral-400">
+                  last updated at {formatTimeShort(lastUpdated)} by {lastUpdatedBy}
+                </span>
+              </div>
+            )}
           </div>
           <div className="flex-1 overflow-hidden ml-8 relative">
             <div className="absolute inset-0 flex items-center">
