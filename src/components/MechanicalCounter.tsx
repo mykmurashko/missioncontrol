@@ -42,15 +42,37 @@ export function MechanicalCounter({ value, label, isEditing, onChange, digits = 
     );
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    // Allow empty input while typing
+    if (inputValue === '') {
+      onChange(0);
+      return;
+    }
+    const numValue = parseInt(inputValue, 10);
+    // Only update if it's a valid number and non-negative
+    if (!isNaN(numValue) && numValue >= 0) {
+      onChange(numValue);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full w-full">
       <div className="text-8xl font-mono font-light leading-none">
         {isEditing ? (
           <Input
             type="number"
+            min="0"
             value={safeValue}
-            onChange={(e) => onChange(parseInt(e.target.value, 10) || 0)}
-            className="text-8xl font-mono font-light bg-transparent border-gray-200 dark:border-white/10 text-gray-900 dark:text-white p-0 h-auto w-40"
+            onChange={handleChange}
+            onBlur={(e) => {
+              // Ensure we have a valid number on blur
+              const value = parseInt(e.target.value, 10);
+              if (isNaN(value) || value < 0) {
+                onChange(0);
+              }
+            }}
+            className="text-8xl font-mono font-light bg-transparent border-gray-200 dark:border-white/10 text-gray-900 dark:text-white p-0 h-auto w-40 focus:ring-2 focus:ring-orange-500"
           />
         ) : (
           renderNumber(safeValue)

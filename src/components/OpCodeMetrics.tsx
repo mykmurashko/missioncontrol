@@ -12,7 +12,9 @@ interface OpCodeMetricsProps {
 
 export function OpCodeMetrics({ metrics, isEditing, onChange }: OpCodeMetricsProps) {
   const updateMetric = (field: 'tasksCompletedThisWeek' | 'uniqueActiveUsersThisHour' | 'componentsParsedSince2026', value: number) => {
-    onChange({ ...metrics, [field]: value });
+    const updatedMetrics = { ...metrics, [field]: value };
+    console.log('OpCodeMetrics: Updating', field, 'to', value);
+    onChange(updatedMetrics);
   };
 
   return (

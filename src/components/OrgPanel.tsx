@@ -41,7 +41,9 @@ function ensureOrgData(org: Org, orgName: string): Org {
 
 export function OrgPanel({ org, orgName, logo, isEditing, onUpdate, onDeleteUpdate }: OrgPanelProps) {
   const updateOrg = (updater: (prev: Org) => Org) => {
-    onUpdate(updater({ ...org }));
+    const updatedOrg = updater({ ...org });
+    console.log('OrgPanel: Updating org', orgName, updatedOrg);
+    onUpdate(updatedOrg);
   };
   
   const updateOrgImmediate = (updater: (prev: Org) => Org) => {

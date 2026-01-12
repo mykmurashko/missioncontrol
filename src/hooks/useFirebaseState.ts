@@ -149,9 +149,18 @@ export function useFirebaseState(userInfo?: UserInfo | null) {
         lastUpdated: new Date().toISOString(),
         lastUpdatedBy: userInfoRef.current?.name || userInfoRef.current?.email || 'Unknown',
       };
-      set(stateRef, stateToSave).catch((error) => {
-        console.error('Failed to save state to Firebase:', error);
+      console.log('Saving state to Firebase:', {
+        opCodeMetrics: stateToSave.orgs.opcode.opCodeMetrics,
+        lastUpdated: stateToSave.lastUpdated,
+        lastUpdatedBy: stateToSave.lastUpdatedBy,
       });
+      set(stateRef, stateToSave)
+        .then(() => {
+          console.log('State saved successfully to Firebase');
+        })
+        .catch((error) => {
+          console.error('Failed to save state to Firebase:', error);
+        });
     } catch (error) {
       console.error('Failed to save state to Firebase:', error);
     }
